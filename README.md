@@ -1,2 +1,5 @@
 # stellarJobs
-Demo for deposits and withdraw funds based on Stellar blockchain
+Demo for deposit and withdraw funds based on Stellar blockchain
+
+# Run
+Use `dotnet run` command
