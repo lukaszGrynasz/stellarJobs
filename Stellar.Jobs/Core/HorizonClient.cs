@@ -4,6 +4,7 @@ using stellar_dotnet_sdk.responses.operations;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -71,7 +72,7 @@ namespace Stellar.Jobs.Core
             }
         }
 
-        public async Task Transfer(KeyPair source, string destinationAddress, decimal amount)
+        public async Task Transfer(KeyPair source, List<KeyPair> signers,  string destinationAddress, decimal amount)
         {
             //get source account - check existance
             var mainAccount = await server.Accounts.Account(source);
@@ -81,8 +82,17 @@ namespace Stellar.Jobs.Core
                new PaymentOperation.Builder(KeyPair.FromAccountId(destinationAddress), new AssetTypeNative(), amount.ToString()).Build())
                .Build();
 
-            tx.Sign(source);
-            await server.SubmitTransaction(tx);
+            foreach(var signer in signers)
+                tx.Sign(signer);
+
+            var response = await server.SubmitTransaction(tx);
+
+            if (response.SubmitTransactionResponseExtras != null &&
+                response.SubmitTransactionResponseExtras.ExtrasResultCodes.TransactionResultCode == "tx_failed")
+            {
+                throw new Exception("Transaction failed : " + response.SubmitTransactionResponseExtras.ExtrasResultCodes?.TransactionResultCode);
+            }
+                
         }
 
         public void Dispose()

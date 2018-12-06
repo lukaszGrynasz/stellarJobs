@@ -4,6 +4,7 @@ using Stellar.Jobs.Model;
 using Stellar.Jobs.Repositories;
 using stellar_dotnet_sdk;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Stellar.Jobs
@@ -43,9 +44,14 @@ namespace Stellar.Jobs
                         tx.Status = Status.Pennding;
                         
                         var mainAccountKey = KeyPair.FromSecretSeed(Configurations.MAIN_ACCOUNT_SEED);
+                        var signers = new List<KeyPair>()
+                        {
+                            mainAccountKey,
+                            KeyPair.FromSecretSeed(Configurations.MAIN_ACCOUNT_ADMIN2_SEED)
+                        };
 
                         //withdraw lumens from main account to destination account 
-                        await horizonClient.Transfer(mainAccountKey, tx.DestinationAddress, tx.Amount);
+                        await horizonClient.Transfer(mainAccountKey, signers, tx.DestinationAddress, tx.Amount);
 
                         tx.Status = Status.Complited;
 
